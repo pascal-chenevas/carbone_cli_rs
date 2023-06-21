@@ -1,6 +1,6 @@
 # carbone_cli_rs
 
-this is a CLI-App to communicate with the API of Carbone
+This is a simple CLI-App to generate report with the API of Carbone.
 
 # Usage
 
@@ -27,3 +27,7 @@ Options:
 ```bash
 cargo run -- -c test_data/config.json -j test_data/report_data.json -o new_report.pdf -t test_data/template.test.odt
 ```
+
+# References
+
+(carbone_sdk_rs)[https://github.com/pascal-chenevas/carbone_sdk_rs]
