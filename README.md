@@ -1,6 +1,6 @@
 # carbone_cli_rs
 
-This is a simple CLI-App to generate report with the API of Carbone.
+This is a simple CLI-App to generate a report with the API of Carbone.
 
 # Usage
 
