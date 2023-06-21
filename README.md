@@ -22,6 +22,14 @@ Options:
   -V, --version                              Print version
 ```
 
+# Getting started
+
+before to use the CLI-App it's necessary to set the API-Token to your environment variable:
+
+```bash
+export CARBONE_TOKEN=<my token>
+```
+
 # Example
 
 ```bash
