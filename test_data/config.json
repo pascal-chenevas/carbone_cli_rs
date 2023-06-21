@@ -1,0 +1,5 @@
+{
+    "apiVersion" : 2,
+    "apiUrl": "https://render.carbone.io",
+    "apiTimeout": 4
+}
