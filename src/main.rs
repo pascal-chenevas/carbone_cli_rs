@@ -14,7 +14,7 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 
-/// Simple program to greet a person
+/// Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
