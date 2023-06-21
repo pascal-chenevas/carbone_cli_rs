@@ -38,6 +38,6 @@ cargo run -- -c test_data/config.json -j test_data/report_data.json -o new_repor
 
 # References
 
-[carbone_sdk_rs a Library to communicate with the Carbone API](https://github.com/pascal-chenevas/carbone_sdk_rs)
+- [carbone_sdk_rs a Library to communicate with the Carbone API](https://github.com/pascal-chenevas/carbone_sdk_rs)
 
-[Carbone API a report generator](https://carbone.io)
+- [Carbone API a report generator](https://carbone.io)
