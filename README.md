@@ -27,7 +27,7 @@ Options:
 before to use the CLI-App it's necessary to set the API-Token to your environment variable:
 
 ```bash
-export CARBONE_TOKEN=<my token>
+export CARBONE_TOKEN="<my token>"
 ```
 
 # Example
