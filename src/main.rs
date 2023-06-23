@@ -42,8 +42,12 @@ struct Cli {
      delete_template: Option<String>,
 }
 
-fn generate_template(carbone_sdk: Carbone, template_file: TemplateFile, render_options: RenderOptions, output: &str) -> Result<(), CarboneError> {
-    if  !template_file.path_as_str().is_empty() && !render_options.as_str().is_empty() && !output.is_empty(){
+fn generate_template(carbone_sdk: Carbone, template_file_path: String, json_data: String, output: &str) -> Result<(), CarboneError> {
+    
+    if  !template_file_path.is_empty() && !json_data.is_empty() && !output.is_empty(){
+
+        let render_options = RenderOptions::new(json_data)?;
+        let template_file = TemplateFile::new(template_file_path)?;
 
         let report_content = carbone_sdk.generate_report_with_file(&template_file, render_options, "")?;
 
@@ -53,11 +57,27 @@ fn generate_template(carbone_sdk: Carbone, template_file: TemplateFile, render_o
         let metadata = fs::metadata(output)?;
 
         println!("");
-        println!("file {} written {} byte(s)", &output, metadata.len());
+        println!("file {} written - {} byte(s)", &output, metadata.len());
         println!("");
     }
     Ok(())
 
+}
+
+fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId) -> Result<(), CarboneError> {
+   
+    let template = Template::new(config, api_token);
+    let is_deleted = template.delete(template_id.clone())?;
+    let template_id = template_id.as_str();
+
+    println!("");
+    if is_deleted {
+        println!("template_id {} deleted", template_id)
+    } else {
+        println!("template_id {} deleted", template_id)
+    }
+    
+    Ok(())
 }
 
 fn main() -> Result<(), CarboneError> {
@@ -91,21 +111,25 @@ fn main() -> Result<(), CarboneError> {
         }
     }
 
-    let template_file = TemplateFile::new(template_file_path)?;
-
     let mut output = "";
     if let Some(o) = cli.output.as_deref() {
         output = o;
     }
 
-    let api_token = &ApiJsonToken::new(token)?;
+    let mut template_id = "";
+    if let Some(t_id) = cli.delete_template.as_deref() {
+        template_id = t_id;
+    }
 
-    let render_options = RenderOptions::new(json_data)?;
+    let template_id = TemplateId::new(template_id.to_string())?;
+
+    let api_token = &ApiJsonToken::new(token)?;
 
     let carbone_sdk = Carbone::new(&config, api_token)?;
 
-    generate_template(carbone_sdk, template_file, render_options, output)?;
+    generate_template(carbone_sdk, template_file_path, json_data, output)?;
 
-    
+    delete_template(&config, &api_token, template_id)?;
+
     Ok(())
 }
