@@ -2,6 +2,8 @@
 name = "carbone_cli_rs"
 version = "0.1.0"
 edition = "2021"
+author = "Pascal Chenevas-Paule [ pacp.dev[a t] posteo.de"
+about = "Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -10,3 +12,4 @@ clap = { version = "4.2.7", features = ["derive"] }
 carbone_sdk_rs =  { git = "https://github.com/pascal-chenevas/carbone_sdk_rs.git" }
 serde = { version = "1.0.159", features = ["derive"] }
 serde_json = "1.0.95"
+bytes = "1.4.0"
