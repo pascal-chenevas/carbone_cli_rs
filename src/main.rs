@@ -19,7 +19,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 #[derive(Parser, Debug)]
-#[command(author = "p", version, about, long_about = None)]
+#[command(author, version, about)]
 struct Cli {
     /// a configuration which contains the api url, timeout and api version
     #[arg(short, long, value_name = "FILE", required = true)]
@@ -45,24 +45,9 @@ struct Cli {
     #[arg(short, long, required = false)]
     update: bool,
 
-    /*  download doesn't works: Error: Error("Content-Type `application/vnd.oasis.opendocument.text` not supported")
-    download a template with the given template_id
-    //#[arg(short, long, required = false, value_name = "TEMPLATE_ID")]
-    //download_template: Option<String>,*/
-}
-
-fn write_file(content: &Bytes, output: &str) -> Result<(), CarboneError> {
-
-    let mut file = File::create(output)?;
-    file.write_all(content)?;
-
-    let metadata = fs::metadata(output)?;
-
-    println!("");
-    println!("file {} written - {} byte(s)", &output, metadata.len());
-    println!("");
-
-    Ok(())
+    /// download a template 
+    #[arg(short, long, required = false, value_name = "TEMPLATE_ID")]
+    download_template: Option<String>,
 }
 
 fn generate_template(carbone_sdk: Carbone, template_file_path: &String, json_data: String, output: &str) -> Result<(), CarboneError> {
@@ -77,7 +62,28 @@ fn generate_template(carbone_sdk: Carbone, template_file_path: &String, json_dat
         write_file(&report_content, output)?;
     }
     Ok(())
+}
 
+fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path: &String) -> Result<(), CarboneError> {
+   
+    if  !template_file_path.is_empty() {
+        let template = Template::new(config, api_token);
+        let template_file = TemplateFile::new(template_file_path.to_owned())?;
+        let template_id = template.upload(&template_file, "".to_string())?;
+    
+        println!("template uploaded. Id: {}", template_id.as_str())
+    }
+    Ok(())
+}
+
+fn download_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId, output: &str) -> Result<(), CarboneError> {
+   
+    let template = Template::new(config, api_token);
+    let content = template.download(template_id)?;
+
+    write_file(&content, output)?;
+    
+    Ok(())
 }
 
 fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId) -> Result<(), CarboneError> {
@@ -96,28 +102,20 @@ fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: Templ
     Ok(())
 }
 
-fn _download_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId, output: &str) -> Result<(), CarboneError> {
-   
-    let template = Template::new(config, api_token);
-    let content = template.download(template_id.clone())?;
 
-    write_file(&content, output)?;
-    
+fn write_file(content: &Bytes, output: &str) -> Result<(), CarboneError> {
+
+    let mut file = File::create(output)?;
+    file.write_all(content)?;
+
+    let metadata = fs::metadata(output)?;
+
+    println!("");
+    println!("file {} written - {} byte(s)", &output, metadata.len());
+    println!("");
+
     Ok(())
 }
-
-fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path: &String) -> Result<(), CarboneError> {
-   
-    if  !template_file_path.is_empty() {
-        let template = Template::new(config, api_token);
-        let template_file = TemplateFile::new(template_file_path.to_owned())?;
-        let template_id = template.upload(&template_file, "".to_string())?;
-    
-        println!("template uploaded. Id: {}", template_id.as_str())
-    }
-    Ok(())
-}
-
 fn main() -> Result<(), CarboneError> {
     
     let cli = Cli::parse();
@@ -159,32 +157,28 @@ fn main() -> Result<(), CarboneError> {
         template_id = t_id;
     }
 
-    /*
     let mut download_template_id = "";
     if let Some(t_id) = cli.download_template.as_deref() {
         download_template_id = t_id;
-    }*/
+    }
 
     let api_token = &ApiJsonToken::new(token)?;
 
-    let carbone_sdk = Carbone::new(&config, api_token)?;
+    let carbone_sdk = Carbone::new(&config, &api_token)?;
 
     generate_template(carbone_sdk, &template_file_path, json_data, output)?;
 
     if !template_id.is_empty() {
         let template_id = TemplateId::new(template_id.to_string())?;
-        delete_template(&config, &api_token, template_id)?;
+        delete_template(&config, api_token, template_id)?;
     }
 
-    /* 
     if !download_template_id.is_empty() && !output.is_empty() {
         let template_id = TemplateId::new(download_template_id.to_string())?;
         download_template(&config, &api_token, template_id, output)?;
     }
-    */
 
     if cli.update {
-        println!("ok");
         upload_template(&config, &api_token, &template_file_path)?;
     }
 

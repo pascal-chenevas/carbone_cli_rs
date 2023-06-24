@@ -2,10 +2,8 @@
 name = "carbone_cli_rs"
 version = "0.1.0"
 edition = "2021"
-author = "Pascal Chenevas-Paule [ pacp.dev[a t] posteo.de"
-about = "Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Pascal Chenevas-Paule <pcp.dev@posteo.de>"]
+description = "Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive"] }

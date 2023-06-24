@@ -1,33 +1,34 @@
 # carbone_cli_rs
 
-This is a simple CLI-App to generate a report with the API of Carbone.
+this is a CLI-App to communicate with the API of Carbone
 
 # Usage
 
 ```bash
 ➜ cargo run -- -h
-   Compiling carbone_cli_rs v0.1.0 (/Users/pascal/repos/carbone_cli_rs)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.40s
-     Running `target/debug/carbone_cli_rs -h`
-Simple CLI-App to communicate with the API of Carbone (http://carbone.io)
+Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)
 
-Usage: carbone_cli_rs [OPTIONS] --template <TEMPLATE>
+Usage: carbone_cli_rs [OPTIONS] --config <FILE>
 
 Options:
-  -c, --config-file-path <CONFIG_FILE_PATH>  path of the config file
-  -j, --json-data <JSON_DATA>                json data to be rendered
-  -t, --template <TEMPLATE>                  template file
-  -o, --output <OUTPUT>                      output file for the generated report
-  -h, --help                                 Print help
-  -V, --version                              Print version
-```
-
-# Getting started
-
-before to use the CLI-App it's necessary to set the API-Token to your environment variable:
-
-```bash
-export CARBONE_TOKEN="<my token>"
+  -c, --config <FILE>
+          a configuration which contains the api url, timeout and api version
+  -j, --json <FILE>
+          json data to be rendered
+  -t, --template <FILE>
+          template file
+  -o, --output <FILE>
+          output file for the generated report
+  -r, --remove-template <TEMPLATE_ID>
+          remove a template with the given template_id
+  -u, --update
+          update a template
+  -d, --download-template <TEMPLATE_ID>
+          download a template
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 
 # Example
@@ -35,11 +36,3 @@ export CARBONE_TOKEN="<my token>"
 ```bash
 cargo run -- -c test_data/config.json -j test_data/report_data.json -o new_report.pdf -t test_data/template.test.odt
 ```
-
-# References
-
-- [Carbone API a report generator](https://carbone.io)
-
-- [carbone_sdk_rs a Library to communicate with the Carbone API](https://github.com/pascal-chenevas/carbone_sdk_rs)
-
-
