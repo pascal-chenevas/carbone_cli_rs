@@ -8,7 +8,7 @@ this is a CLI-App to communicate with the API of Carbone
 ➜ cargo run -- -h
 Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)
 
-Usage: carbone_cli_rs [OPTIONS] --config <FILE>
+Usage: carbone_cli_rs [OPTIONS]
 
 Options:
   -c, --config <FILE>
