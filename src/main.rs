@@ -42,6 +42,25 @@ impl UploadResult {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+struct DeleteResult {
+    deleted: bool,
+    template_id: Option<String>,
+    error: Option<String>
+}
+
+impl DeleteResult {
+
+    fn new(deleted: bool, template_id: Option<String>, error: Option<String>) -> Self {
+        Self {
+            deleted,
+            template_id,
+            error
+        }
+    }
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Cli {
@@ -86,7 +105,7 @@ fn generate_template(carbone_sdk: Carbone, template_file_path: &String, json_dat
     Ok(())
 }
 
-fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path: &String) -> Result<(), CarboneError> {
+fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path: &String) -> UploadResult {
    
     let template = Template::new(config, api_token);
     let upload_result = match TemplateFile::new(template_file_path.to_owned()) {
@@ -100,12 +119,7 @@ fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path
         },
         Err(e) =>  UploadResult::new(template_file_path.to_owned(), false, None, Some(e.to_string()))
     };
-
-    let json = json!(upload_result);
-    
-    println!("{:#}", json);
-
-    Ok(())
+    upload_result
 }
 
 fn download_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId, output: &str) -> Result<(), CarboneError> {
@@ -118,20 +132,13 @@ fn download_template(config: &Config, api_token: &ApiJsonToken, template_id: Tem
     Ok(())
 }
 
-fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId) -> Result<(), CarboneError> {
+fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId) -> DeleteResult {
    
     let template = Template::new(config, api_token);
-    let is_deleted = template.delete(template_id.clone())?;
-    let template_id = template_id.as_str();
-
-    println!("");
-    if is_deleted {
-        println!("template_id {} deleted", template_id)
-    } else {
-        println!("template_id {} deleted", template_id)
+    match template.delete(template_id.clone()) {
+        Ok(_) => DeleteResult::new(true, Some(template_id.as_str().to_string()), None),
+        Err(e) => DeleteResult::new(false, Some(template_id.as_str().to_string()), Some(e.to_string())),
     }
-    
-    Ok(())
 }
 
 fn write_file(content: &Bytes, output: &str) -> Result<(), CarboneError> {
@@ -201,7 +208,9 @@ fn main() -> Result<(), CarboneError> {
 
     if !template_id_from_opt_remove.is_empty() {
         let template_id = TemplateId::new(template_id_from_opt_remove.to_string())?;
-        delete_template(&config, &api_token, template_id)?;
+        let delete_result = delete_template(&config, &api_token, template_id);
+        let json = json!(delete_result);
+        println!("{:#}", json);
     }
 
     if !template_id_from_opt_download.is_empty() && !output.is_empty() {
@@ -210,7 +219,9 @@ fn main() -> Result<(), CarboneError> {
     }
 
     if cli.update {
-        upload_template(&config, &api_token, &template_file_path)?;
+        let upload_result = upload_template(&config, &api_token, &template_file_path);
+        let json = json!(upload_result);
+        println!("{:#}", json);
     }
 
     Ok(())
