@@ -33,6 +33,15 @@ Options:
 
 # Example
 
+run from the sources:
+
 ```bash
-cargo run -- -c test_data/config.json -j test_data/report_data.json -o new_report.pdf -t test_data/template.test.odt
+cargo run --  -j test_data/report_data.json -t /tmp/template.odt -o /tmp/report.pdf
+
+{
+  "bytes": 92989,
+  "created": true,
+  "error": null,
+  "output": "/tmp/report.pdf"
+}
 ```
