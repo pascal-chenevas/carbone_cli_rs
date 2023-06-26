@@ -1,4 +1,3 @@
-
 use clap::Parser;
 use serde_json::json;
 
@@ -23,8 +22,29 @@ use std::io::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+struct GenerateReportResult {
+    created: bool,
+    output: String,
+    bytes: u64,
+    error: Option<String>
+}
+
+impl GenerateReportResult {
+
+    fn new(created: bool, output: String, bytes: u64, error: Option<String>) -> Self {
+        Self {
+            created,
+            output,
+            bytes,
+            error
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 struct UploadResult {
-    file: String,
+    output: String,
     uploaded: bool,
     template_id: Option<String>,
     error: Option<String>
@@ -32,11 +52,32 @@ struct UploadResult {
 
 impl UploadResult {
 
-    fn new(file: String, uploaded: bool, template_id: Option<String>, error: Option<String>) -> Self {
+    fn new(output: String, uploaded: bool, template_id: Option<String>, error: Option<String>) -> Self {
         Self {
-            file,
+            output,
             uploaded,
             template_id,
+            error
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+struct DownloadResult {
+    output: String,
+    downloaded: bool,
+    bytes: u64,
+    error: Option<String>
+}
+
+impl DownloadResult {
+
+    fn new(output: String, downloaded: bool, bytes: u64, error: Option<String>) -> Self {
+        Self {
+            output,
+            downloaded,
+            bytes,
             error
         }
     }
@@ -93,16 +134,23 @@ struct Cli {
     download_template: Option<String>,
 }
 
-fn generate_template(carbone_sdk: Carbone, template_file_path: &String, json_data: String, output: &str) -> Result<(), CarboneError> {
+fn generate_template(carbone_sdk: Carbone, template_file_path: &String, json_data: String, output: &str) -> Result<GenerateReportResult, CarboneError> {
     
     let render_options = RenderOptions::new(json_data)?;
-        let template_file = TemplateFile::new(template_file_path.to_owned())?;
+    let template_file = TemplateFile::new(template_file_path.to_owned())?;
 
-        let report_content = carbone_sdk.generate_report_with_file(&template_file, render_options, "")?;
+    let generate_report_result = match carbone_sdk.generate_report_with_file(&template_file, render_options, "") {
+        Ok(report_content) => {
+            let generate_report_result = match write_file(&report_content, output) {
+                Ok(bw) => GenerateReportResult::new(true, output.to_string(), bw, None),
+                Err(e) => GenerateReportResult::new(false, output.to_string(), 0, Some(e.to_string())),
+            };
+            generate_report_result
+        },
+        Err(e) => GenerateReportResult::new(false, output.to_string(), 0, Some(e.to_string())),
+    };
 
-        write_file(&report_content, output)?;
-
-    Ok(())
+    Ok(generate_report_result)
 }
 
 fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path: &String) -> UploadResult {
@@ -122,14 +170,21 @@ fn upload_template(config: &Config, api_token: &ApiJsonToken, template_file_path
     upload_result
 }
 
-fn download_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId, output: &str) -> Result<(), CarboneError> {
+fn download_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId, output: &str) -> Result<DownloadResult, CarboneError> {
    
     let template = Template::new(config, api_token);
-    let content = template.download(template_id)?;
-
-    write_file(&content, output)?;
+    let download_result = match template.download(template_id) {
+        Ok(content) => {
+            let dr = match write_file(&content, output) {
+                Ok(bw) => DownloadResult::new(output.to_owned(), true, bw, None),
+                Err(e) => DownloadResult::new(output.to_owned(), false, 0, Some(e.to_string())),
+            };
+            dr
+        },
+        Err(e) => DownloadResult::new(output.to_owned(), false, 0, Some(e.to_string())),
+    };
     
-    Ok(())
+    Ok(download_result)
 }
 
 fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: TemplateId) -> DeleteResult {
@@ -141,18 +196,14 @@ fn delete_template(config: &Config, api_token: &ApiJsonToken, template_id: Templ
     }
 }
 
-fn write_file(content: &Bytes, output: &str) -> Result<(), CarboneError> {
+fn write_file(content: &Bytes, output: &str) -> Result<u64, CarboneError> {
 
     let mut file = File::create(output)?;
     file.write_all(content)?;
 
     let metadata = fs::metadata(output)?;
 
-    println!("");
-    println!("file {} written - {} byte(s)", &output, metadata.len());
-    println!("");
-
-    Ok(())
+    Ok(metadata.len())
 }
 
 fn main() -> Result<(), CarboneError> {
@@ -161,7 +212,10 @@ fn main() -> Result<(), CarboneError> {
 
     let token =  match env::var("CARBONE_TOKEN") {
         Ok(v) => v,
-        Err(e) => panic!("{}", e.to_string())
+        Err(_) => {
+            println!("\nEnvironment Variable `CARBONE_TOKEN` is not set!\n");
+            std::process::exit(1)
+        }
     };
 
     let mut config = Default::default();
@@ -202,25 +256,29 @@ fn main() -> Result<(), CarboneError> {
 
     let carbone_sdk = Carbone::new(&config, &api_token)?;
 
+    if cli.update {
+        let upload_result = upload_template(&config, &api_token, &template_file_path);
+        let json = json!(upload_result);
+        println!("{:#}", json);
+    }
+
     if  !template_file_path.is_empty() && !json_data.is_empty() && !output.is_empty(){
-        generate_template(carbone_sdk, &template_file_path, json_data, output.as_str())?;
+        let generate_report_result = generate_template(carbone_sdk, &template_file_path, json_data, output.as_str())?;
+        let json = json!(generate_report_result);
+        println!("{:#}", json);
+    }
+
+    if !template_id_from_opt_download.is_empty() && !output.is_empty() {
+        let template_id = TemplateId::new(template_id_from_opt_download.to_string())?;
+        let download_result = download_template(&config, &api_token, template_id, output.as_str())?;
+        let json = json!(download_result);
+        println!("{:#}", json);
     }
 
     if !template_id_from_opt_remove.is_empty() {
         let template_id = TemplateId::new(template_id_from_opt_remove.to_string())?;
         let delete_result = delete_template(&config, &api_token, template_id);
         let json = json!(delete_result);
-        println!("{:#}", json);
-    }
-
-    if !template_id_from_opt_download.is_empty() && !output.is_empty() {
-        let template_id = TemplateId::new(template_id_from_opt_download.to_string())?;
-        download_template(&config, &api_token, template_id, output.as_str())?;
-    }
-
-    if cli.update {
-        let upload_result = upload_template(&config, &api_token, &template_file_path);
-        let json = json!(upload_result);
         println!("{:#}", json);
     }
 
