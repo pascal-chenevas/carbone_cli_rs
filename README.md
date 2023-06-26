@@ -38,7 +38,7 @@ Options:
 ### create a report
 
 ```bash
-cargo run --  -j test_data/report_data.json -t /tmp/template.odt -o /tmp/report.pdf
+cargo run --  -j test_data/report_data.json -t test_data/template.test.odt -o /tmp/report.pdf
 
 {
   "bytes": 92989,
