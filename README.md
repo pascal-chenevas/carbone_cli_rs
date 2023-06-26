@@ -33,7 +33,9 @@ Options:
 
 # Example
 
-run from the sources:
+(run from the sources)
+
+### create a report
 
 ```bash
 cargo run --  -j test_data/report_data.json -t /tmp/template.odt -o /tmp/report.pdf
