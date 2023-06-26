@@ -7,7 +7,9 @@ use bytes::Bytes;
 
 use std::path::PathBuf;
 
-use serde::{Serialize,Deserialize};
+use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
 
 use carbone_sdk_rs::config::Config;
 use carbone_sdk_rs::template::*;
@@ -16,91 +18,9 @@ use carbone_sdk_rs::carbone::Carbone;
 use carbone_sdk_rs::errors::*;
 use carbone_sdk_rs::types::*;
 
-use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
+mod types;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-struct GenerateReportResult {
-    created: bool,
-    output: String,
-    bytes: u64,
-    error: Option<String>
-}
-
-impl GenerateReportResult {
-
-    fn new(created: bool, output: String, bytes: u64, error: Option<String>) -> Self {
-        Self {
-            created,
-            output,
-            bytes,
-            error
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-struct UploadResult {
-    output: String,
-    uploaded: bool,
-    template_id: Option<String>,
-    error: Option<String>
-}
-
-impl UploadResult {
-
-    fn new(output: String, uploaded: bool, template_id: Option<String>, error: Option<String>) -> Self {
-        Self {
-            output,
-            uploaded,
-            template_id,
-            error
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-struct DownloadResult {
-    output: String,
-    downloaded: bool,
-    bytes: u64,
-    error: Option<String>
-}
-
-impl DownloadResult {
-
-    fn new(output: String, downloaded: bool, bytes: u64, error: Option<String>) -> Self {
-        Self {
-            output,
-            downloaded,
-            bytes,
-            error
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-struct DeleteResult {
-    deleted: bool,
-    template_id: Option<String>,
-    error: Option<String>
-}
-
-impl DeleteResult {
-
-    fn new(deleted: bool, template_id: Option<String>, error: Option<String>) -> Self {
-        Self {
-            deleted,
-            template_id,
-            error
-        }
-    }
-}
+use types::*;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
@@ -206,6 +126,32 @@ fn write_file(content: &Bytes, output: &str) -> Result<u64, CarboneError> {
     Ok(metadata.len())
 }
 
+fn get_path_from_option(option: Option<PathBuf>) -> String {
+
+    let mut path = "".to_string();
+    if let Some(path_from_option) = option.as_deref() {
+        path = path_from_option.to_string_lossy().into();
+    }
+    path
+}
+
+fn get_id_from_option(option: Option<String>) -> String {
+    match  option.as_deref() {
+        Some(id) => id.to_string(),
+        None=> "".to_string(),
+    }
+}
+
+fn load_config(option: Option<PathBuf>) -> Config {
+
+    let file_path_from_opt_config = get_path_from_option(option);
+
+    match Config::from_file(file_path_from_opt_config.as_str()) {
+        Ok(c) => c,
+        Err(_) => Default::default(),
+    }
+}
+
 fn main() -> Result<(), CarboneError> {
     
     let cli = Cli::parse();
@@ -218,39 +164,21 @@ fn main() -> Result<(), CarboneError> {
         }
     };
 
-    let mut config = Default::default();
+    let config = load_config(cli.config);
 
-    if let Some(config_path) = cli.config.as_deref() {
-        if let Some(path) = config_path.to_str() {
-            config = Config::from_file(path)?;
-        }
+    let json_path = get_path_from_option(cli.json);
+    let mut json_data = "".to_string();
+    if !json_path.is_empty() {
+        json_data = fs::read_to_string(json_path)?;
     }
 
-    let mut json_data = String::from("");
-    if let Some(json_path) = cli.json.as_deref() {
-        let path: String = json_path.to_string_lossy().into();
-        json_data = fs::read_to_string(path)?;
-    }
+    let template_file_path = get_path_from_option(cli.template);
 
-    let mut template_file_path = "".to_string();
-    if let Some(template_path) = cli.template.as_deref() {
-        template_file_path = template_path.to_string_lossy().into();
-    }
+    let output = get_path_from_option(cli.output);
 
-    let mut output = "".to_string();
-    if let Some(o) = cli.output.as_deref() {
-        output = o.to_string_lossy().into();
-    }
+    let template_id_from_opt_remove = get_id_from_option(cli.remove_template);
 
-    let mut template_id_from_opt_remove = "";
-    if let Some(t_id) = cli.remove_template.as_deref() {
-        template_id_from_opt_remove = t_id;
-    }
-
-    let mut template_id_from_opt_download = "";
-    if let Some(t_id) = cli.download_template.as_deref() {
-        template_id_from_opt_download = t_id;
-    }
+    let template_id_from_opt_download = get_id_from_option(cli.download_template);
 
     let api_token = ApiJsonToken::new(token)?;
 
