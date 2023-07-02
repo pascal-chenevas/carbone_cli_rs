@@ -34,7 +34,7 @@ fn main() -> Result<(), CarboneError> {
         Err(_) => Default::default()
     };
 
-    let app = app::app::App::new(&config, &token, &cli)?;
+    let app = app::carbone::App::new(&config, &token, &cli)?;
     app.run()?;
     
     Ok(())
