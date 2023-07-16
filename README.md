@@ -7,15 +7,17 @@ this is a CLI-App to communicate with the API of Carbone
 
 # Usage
 
+## Run from the sources
+
 ```bash
 ➜ cargo run -- -h
-Simple CLI-App to generate a report using the API of Carbone (http://carbone.io)
+Simple CLI-App to generate a report and to manage templates using the API of Carbone (http://carbone.io)
 
 Usage: carbone_cli_rs [OPTIONS]
 
 Options:
   -c, --config <FILE>
-          a configuration which contains the api url, timeout and api version
+          a configuration file which contains the api url, timeout and api version
   -j, --json <FILE>
           json data to be rendered
   -t, --template <FILE>
