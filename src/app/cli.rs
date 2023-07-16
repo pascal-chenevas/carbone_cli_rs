@@ -5,7 +5,7 @@ use std::path::PathBuf;
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 pub struct Cli {
-    /// a configuration which contains the api url, timeout and api version
+    /// a configuration file which contains the api url, timeout and api version
     #[arg(short, long, value_name = "FILE")]
     pub config: Option<PathBuf>,
     
