@@ -2,7 +2,7 @@ use std::env;
 
 use carbone_sdk_rs::config::Config;
 use carbone_sdk_rs::errors::*;
-use carbone_sdk_rs::types::*;
+use carbone_sdk_rs::types::ApiJsonToken;
 
 mod app;
 
@@ -10,21 +10,7 @@ const ERROR_EXIT_CODE: i32 = 1;
 
 fn main() -> Result<(), CarboneError> {
 
-    let token =  match env::var("CARBONE_TOKEN") {
-        Ok(v) => {
-            match ApiJsonToken::new(v) {
-                Ok(token) => token,
-                Err(e) => {
-                    println!("{}", e);
-                    std::process::exit(ERROR_EXIT_CODE)
-                }
-            }
-        },
-        Err(_) => {
-            println!("\nEnvironment Variable `CARBONE_TOKEN` is not set!\n");
-            std::process::exit(ERROR_EXIT_CODE)
-        }
-    };
+    let token = ApiJsonToken::new("***REMOVED***".to_string())?;
 
     let cli = app::cli::Cli::new();
 
@@ -33,7 +19,7 @@ fn main() -> Result<(), CarboneError> {
         Ok(config) => config,
         Err(_) => Default::default()
     };
-
+    
     let app = app::carbone::App::new(&config, &token, &cli)?;
     app.run()?;
     
