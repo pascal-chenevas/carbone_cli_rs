@@ -10,7 +10,7 @@ const ERROR_EXIT_CODE: i32 = 1;
 
 fn main() -> Result<(), CarboneError> {
 
-    let token = ApiJsonToken::new("***REMOVED***".to_string())?;
+
 
     let cli = app::cli::Cli::new();
 
