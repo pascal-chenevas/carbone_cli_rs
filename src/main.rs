@@ -10,7 +10,21 @@ const ERROR_EXIT_CODE: i32 = 1;
 
 fn main() -> Result<(), CarboneError> {
 
-
+    let token =  match env::var("CARBONE_TOKEN") {
+        Ok(v) => {
+            match ApiJsonToken::new(v) {
+                Ok(token) => token,
+                Err(e) => {
+                    println!("{}", e);
+                    std::process::exit(ERROR_EXIT_CODE)
+                }
+            }
+        },
+        Err(_) => {
+            println!("\nEnvironment Variable `CARBONE_TOKEN` is not set!\n");
+            std::process::exit(ERROR_EXIT_CODE)
+        }
+    };
 
     let cli = app::cli::Cli::new();
 
