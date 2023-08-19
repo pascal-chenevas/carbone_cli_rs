@@ -22,6 +22,8 @@ Options:
           json data to be rendered
   -t, --template <FILE>
           template file
+  -g, --generate-template-id
+          template file
   -o, --output <FILE>
           output file for the generated report
   -r, --remove-template <TEMPLATE_ID>
