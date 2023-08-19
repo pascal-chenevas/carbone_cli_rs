@@ -48,6 +48,18 @@ impl <'a>App<'a> {
 
         let template_id_from_opt_download = self.cli.get_id_from_option(&self.cli.download_template);
 
+        if self.cli.generate_template_id && !template_file_path.is_empty() {
+           let template_file = TemplateFile::new(template_file_path.to_owned(), None)?;
+           let template_id = template_file.generate_id(None)?;
+
+           let json = json!({
+            "file": template_file_path,
+            "templateId": template_id 
+           });
+
+            println!("{:#}", json);
+        }
+
         if self.cli.update {
             let upload_result = self.upload_template(&template_file_path);
             let json = json!(upload_result);
