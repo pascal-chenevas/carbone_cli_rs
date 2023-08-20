@@ -1,5 +1,6 @@
 
 use std::fs;
+use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 use serde_json::json;
@@ -44,18 +45,17 @@ impl <'a>App<'a> {
 
         let output = self.cli.get_path_from_option(&self.cli.output);
 
-        let template_id_from_opt_remove = self.cli.get_id_from_option(&self.cli.remove_template);
+        let value_from_opt_remove = self.cli.get_value_from_option(&self.cli.remove_template);
 
-        let template_id_from_opt_download = self.cli.get_id_from_option(&self.cli.download_template);
+        let template_id_from_opt_download = self.cli.get_value_from_option(&self.cli.download_template);
 
         if self.cli.generate_template_id && !template_file_path.is_empty() {
-           let template_file = TemplateFile::new(template_file_path.to_owned(), None)?;
-           let template_id = template_file.generate_id(None)?;
+            let template_file = TemplateFile::new(template_file_path.to_owned(), None)?;
+            let template_id = template_file.generate_id(None)?;
 
-           let json = json!({
-            "file": template_file_path,
-            "templateId": template_id 
-           });
+            let json = json!({
+                    "file": template_file_path,
+                    "templateId": template_id });
 
             println!("{:#}", json);
         }
@@ -79,8 +79,15 @@ impl <'a>App<'a> {
             println!("{:#}", json);
         }
     
-        if !template_id_from_opt_remove.is_empty() {
-            let template_id = TemplateId::new(template_id_from_opt_remove)?;
+        if !value_from_opt_remove.is_empty() {
+            let template_id: TemplateId;
+            if Path::new(value_from_opt_remove.as_str()).is_file() {
+                let template_file = TemplateFile::new(value_from_opt_remove, None)?;
+                template_id = template_file.generate_id(None)?;
+            } else {
+                template_id = TemplateId::new(value_from_opt_remove)?;
+            }
+            
             let delete_result = self.delete_template(template_id);
             let json = json!(delete_result);
             println!("{:#}", json);
