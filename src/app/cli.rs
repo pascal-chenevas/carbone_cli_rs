@@ -4,15 +4,15 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
-pub struct Cli { 6 implementations
+pub struct Cli {
     /// a configuration file which contains the api url, timeout and api version
     #[arg(short, long, value_name = "FILE")]
     pub config: Option<PathBuf>,
-
+    
     /// json data to be rendered
     #[arg(short, long, value_name = "FILE")]
     pub json: Option<PathBuf>,
-
+   
     /// template file
     #[arg(short, long, value_name = "FILE")]
     pub template: Option<PathBuf>,
@@ -25,15 +25,15 @@ pub struct Cli { 6 implementations
     #[arg(short, long, value_name = "FILE")]
     pub output: Option<PathBuf>,
 
-    /// remove a template with the given template_id
-    #[arg(short, long, required = false, value_name = "TEMPLATE_ID")]
+    /// remove a template with the given template_id or from a file
+    #[arg(short, long, required = false, value_name = "TEMPLATE_ID | FILE")]
     pub remove_template: Option<String>,
 
-    /// update a template
+    /// update a template 
     #[arg(short, long, required = false)]
     pub update: bool,
 
-    /// download a template
+    /// download a template 
     #[arg(short, long, required = false, value_name = "TEMPLATE_ID")]
     pub download_template: Option<String>,
 }
@@ -51,8 +51,8 @@ impl Cli {
         }
         path
     }
-
-    pub fn get_id_from_option(&self, option: &Option<String>) -> String {
+    
+    pub fn get_value_from_option(&self, option: &Option<String>) -> String {
         match  option.as_deref() {
             Some(id) => id.to_string(),
             None=> "".to_string(),
