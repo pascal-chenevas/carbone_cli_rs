@@ -26,8 +26,8 @@ Options:
           template file
   -o, --output <FILE>
           output file for the generated report
-  -r, --remove-template <TEMPLATE_ID>
-          remove a template with the given template_id
+  -r, --remove-template <TEMPLATE_ID | FILE>
+          remove a template with the given template_id or from a file
   -u, --update
           update a template
   -d, --download-template <TEMPLATE_ID>
