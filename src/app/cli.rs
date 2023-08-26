@@ -17,7 +17,7 @@ pub struct Cli {
     #[arg(short, long, value_name = "FILE")]
     pub template: Option<PathBuf>,
 
-    /// template file
+    /// template id
     #[arg(short, long)]
     pub generate_template_id: bool,
 
