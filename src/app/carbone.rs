@@ -8,7 +8,6 @@ use bytes::Bytes;
 
 use carbone_sdk_rs::config::Config;
 use carbone_sdk_rs::template::*;
-use carbone_sdk_rs::render::JsonData;
 use carbone_sdk_rs::blocking::Carbone;
 use carbone_sdk_rs::types::Result;
 use carbone_sdk_rs::types::*;
