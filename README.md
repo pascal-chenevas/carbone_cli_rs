@@ -23,7 +23,7 @@ Options:
   -t, --template <FILE>
           template file
   -g, --generate-template-id
-          template file
+          template id
   -o, --output <FILE>
           output file for the generated report
   -r, --remove-template <TEMPLATE_ID | FILE>
