@@ -42,15 +42,55 @@ Options:
 
 (run from the sources)
 
-### create a report
+### Create a report
 
 ```bash
 cargo run --  -j test_data/report_data.json -t test_data/template.test.odt -o /tmp/report.pdf
 
 {
   "bytes": 92989,
-  "created": true,
-  "error": null,
-  "output": "/tmp/report.pdf"
+  "file": "/tmp/report.pdf",
+  "state": {
+    "Created": true
+  }
 }
 ```
+### Generate a TemplateId 
+
+```bash
+cargo run -- -g -t test_data/template.test.odt
+{
+  "file": "test_data/template.test.odt",
+  "templateId": "844318fe97904fb0897d4b0a47fbe9bbd1ce5c9624ae694545cbc1877f581d86"
+}
+```
+
+### Upload a Template
+
+```bash
+cargo run -- -u -t test_data/template.test.odt
+
+{
+  "file": "test_data/template.test.odt",
+  "state": {
+    "Uploaded": true
+  },
+  "templateId": "844318fe97904fb0897d4b0a47fbe9bbd1ce5c9624ae694545cbc1877f581d86"
+}
+```
+
+
+### Delete a Template
+
+```bash
+cargo run -- -r test_data/template.test.odt
+
+{
+  "state": {
+    "Deleted": true
+  },
+  "templateId": "844318fe97904fb0897d4b0a47fbe9bbd1ce5c9624ae694545cbc1877f581d86"
+}
+
+```
+
