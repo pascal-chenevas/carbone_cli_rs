@@ -88,6 +88,14 @@ cargo run -- -u -t test_data/template.test.odt
 
 ### Delete a Template
 
+### Given a TemplateId
+
+```bash
+cargo run -- -r 844318fe97904fb0897d4b0a47fbe9bbd1ce5c9624ae694545cbc1877f581d86
+```
+
+#### Given an existing file
+
 ```bash
 cargo run -- -r test_data/template.test.odt
 
@@ -99,4 +107,6 @@ cargo run -- -r test_data/template.test.odt
 }
 
 ```
+
+
 
