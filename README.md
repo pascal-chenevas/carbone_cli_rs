@@ -38,7 +38,13 @@ Options:
           Print version
 ```
 
-# Example
+# Examples
+
+Before to start the environment variable CARBONE_TOKEN must be set.
+
+```bash
+export CARBONE_TOKEN=My_token
+```
 
 (run from the sources)
 
