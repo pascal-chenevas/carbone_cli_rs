@@ -1,14 +1,13 @@
-
+use bytes::Bytes;
+use serde_json::json;
 use std::fs;
-use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
-use serde_json::json;
-use bytes::Bytes;
+use std::path::Path;
 
+use carbone_sdk_rs::blocking::Carbone;
 use carbone_sdk_rs::config::Config;
 use carbone_sdk_rs::template::*;
-use carbone_sdk_rs::blocking::Carbone;
 use carbone_sdk_rs::types::Result;
 use carbone_sdk_rs::types::*;
 
@@ -20,19 +19,16 @@ pub struct App<'a> {
     carbone: Carbone<'a>,
 }
 
-impl <'a>App<'a> {
-
+impl<'a> App<'a> {
     pub fn new(config: &'a Config, api_token: &'a ApiJsonToken, cli: &'a Cli) -> Result<Self> {
-
         let carbone = Carbone::new(config, api_token)?;
 
-        let app = Self {cli, carbone};
+        let app = Self { cli, carbone };
 
         Ok(app)
     }
 
     pub fn run(&self) -> Result<()> {
-
         let json_path = self.cli.get_path_from_option(&self.cli.json);
 
         let mut json_data = "".to_string();
@@ -46,7 +42,8 @@ impl <'a>App<'a> {
 
         let value_from_opt_remove = self.cli.get_value_from_option(&self.cli.remove_template);
 
-        let template_id_from_opt_download = self.cli.get_value_from_option(&self.cli.download_template);
+        let template_id_from_opt_download =
+            self.cli.get_value_from_option(&self.cli.download_template);
 
         if self.cli.generate_template_id && !template_file_path.is_empty() {
             let template_file = TemplateFile::new(template_file_path.to_owned(), None)?;
@@ -64,20 +61,21 @@ impl <'a>App<'a> {
             let json = json!(upload_result);
             println!("{:#}", json);
         }
-    
-        if  !template_file_path.is_empty() && !json_data.is_empty() && !output.is_empty(){
-            let generate_report_result = self.generate_report(&template_file_path, json_data, output.as_str())?;
+
+        if !template_file_path.is_empty() && !json_data.is_empty() && !output.is_empty() {
+            let generate_report_result =
+                self.generate_report(&template_file_path, json_data, output.as_str())?;
             let json = json!(generate_report_result);
             println!("{:#}", json);
         }
-    
+
         if !template_id_from_opt_download.is_empty() && !output.is_empty() {
             let template_id = TemplateId::new(template_id_from_opt_download)?;
             let download_result = self.download_template(template_id, output.as_str());
             let json = json!(download_result);
             println!("{:#}", json);
         }
-    
+
         if !value_from_opt_remove.is_empty() {
             let template_id: TemplateId;
             if Path::new(value_from_opt_remove.as_str()).is_file() {
@@ -86,7 +84,7 @@ impl <'a>App<'a> {
             } else {
                 template_id = TemplateId::new(value_from_opt_remove)?;
             }
-            
+
             let delete_result = self.delete_template(template_id);
             let json = json!(delete_result);
             println!("{:#}", json);
@@ -95,67 +93,133 @@ impl <'a>App<'a> {
         Ok(())
     }
 
-    fn generate_report(&self, template_file_path: &String, json_data: String, output: &str) -> Result<GenerateReportResult> {
-    
+    fn generate_report(
+        &self,
+        template_file_path: &String,
+        json_data: String,
+        output: &str,
+    ) -> Result<JsonResult> {
         let json_data = JsonData::new(json_data)?;
         let template_file = TemplateFile::new(template_file_path.to_owned(), None)?;
 
-        let generate_report_result = match self.carbone.generate_report_with_file(&template_file, json_data, None) {
-            Ok(report_content) => {
-                match Self::write_file(&report_content, output) {
-                    Ok(bw) => GenerateReportResult::new(true, output.to_string(), bw, None),
-                    Err(e) => GenerateReportResult::new(false, output.to_string(), 0, Some(e.to_string())),
-                }
-            },
-            Err(e) => GenerateReportResult::new(false, output.to_string(), 0, Some(e.to_string())),
-        };
-    
-        Ok(generate_report_result)
+        let json_result =
+            match self
+                .carbone
+                .generate_report_with_file(&template_file, json_data, None)
+            {
+                Ok(report_content) => match Self::write_file(&report_content, output) {
+                    Ok(bw) => JsonResult {
+                        state: State::Created(true),
+                        file: Some(output.to_string()),
+                        bytes: Some(bw),
+                        template_id: None,
+                        error: None,
+                    },
+                    Err(e) => JsonResult {
+                        state: State::Created(false),
+                        file: Some(output.to_string()),
+                        bytes: Some(0),
+                        template_id: None,
+                        error: Some(e.to_string()),
+                    },
+                },
+                Err(e) => JsonResult {
+                    state: State::Created(false),
+                    file: Some(output.to_string()),
+                    bytes: Some(0),
+                    template_id: None,
+                    error: Some(e.to_string()),
+                },
+            };
+
+        Ok(json_result)
     }
-    
-    fn upload_template(&self, template_file_path: &String) -> UploadResult {
-       
+
+    fn upload_template(&self, template_file_path: &String) -> JsonResult {
         match TemplateFile::new(template_file_path.to_owned(), None) {
             Ok(tf) => {
                 let result = self.carbone.upload_template(&tf, None);
                 match result {
-                    Ok(id) => UploadResult::new(template_file_path.to_owned(), true, Some(id.as_str().to_string()), None),
-                    Err(e) => UploadResult::new(template_file_path.to_owned(), false, None, Some(e.to_string()))
+                    Ok(id) => JsonResult {
+                        state: State::Uploaded(true),
+                        file: Some(template_file_path.to_owned()),
+                        bytes: None,
+                        template_id: Some(id.as_str().to_string()),
+                        error: None,
+                    },
+                    Err(e) => JsonResult {
+                        state: State::Uploaded(false),
+                        file: Some(template_file_path.to_owned()),
+                        bytes: None,
+                        template_id: None,
+                        error: Some(e.to_string()),
+                    },
                 }
+            }
+            Err(e) => JsonResult {
+                state: State::Uploaded(false),
+                file: Some(template_file_path.to_owned()),
+                bytes: None,
+                template_id: None,
+                error: Some(e.to_string()),
             },
-            Err(e) =>  UploadResult::new(template_file_path.to_owned(), false, None, Some(e.to_string()))
         }
     }
-    
-    fn download_template(&self, template_id: TemplateId, output: &str) -> DownloadResult {
-       
+
+    fn download_template(&self, template_id: TemplateId, output: &str) -> JsonResult {
         match self.carbone.download_template(&template_id) {
-            Ok(content) => {
-                match Self::write_file(&content, output) {
-                    Ok(bw) => DownloadResult::new(output.to_owned(), true, bw, None),
-                    Err(e) => DownloadResult::new(output.to_owned(), false, 0, Some(e.to_string())),
-                }
+            Ok(content) => match Self::write_file(&content, output) {
+                Ok(bw) => JsonResult {
+                    state: State::Downloaded(true),
+                    file: Some(output.to_owned()),
+                    bytes: Some(bw),
+                    template_id: Some(template_id.as_str().to_string()),
+                    error: None,
+                },
+                Err(e) => JsonResult {
+                    state: State::Downloaded(false),
+                    file: Some(output.to_owned()),
+                    bytes: Some(0),
+                    template_id: Some(template_id.as_str().to_string()),
+                    error: Some(e.to_string()),
+                },
             },
-            Err(e) => DownloadResult::new(output.to_owned(), false, 0, Some(e.to_string())),
+            Err(e) => JsonResult {
+                state: State::Downloaded(false),
+                file: Some(output.to_owned()),
+                bytes: Some(0),
+                template_id: Some(template_id.as_str().to_string()),
+                error: Some(e.to_string()),
+            },
         }
     }
-    
-    fn delete_template(&self, template_id: TemplateId) -> DeleteResult {
-       
+
+    fn delete_template(&self, template_id: TemplateId) -> JsonResult {
         match self.carbone.delete_template(template_id.clone()) {
-            Ok(_) => DeleteResult::new(true, Some(template_id.as_str().to_string()), None),
-            Err(e) => DeleteResult::new(false, Some(template_id.as_str().to_string()), Some(e.to_string())),
+            Ok(_) => JsonResult {
+                state: State::Deleted(true),
+                file: None,
+                bytes: None,
+                template_id: Some(template_id.as_str().to_string()),
+                error: None,
+            },
+
+            Err(e) => JsonResult {
+                state: State::Deleted(false),
+                file: None,
+                bytes: None,
+                template_id: Some(template_id.as_str().to_string()),
+                error: Some(e.to_string()),
+            },
         }
     }
-    
+
     fn write_file(content: &Bytes, output: &str) -> Result<u64> {
-    
         let mut file = File::create(output)?;
         file.write_all(content)?;
-    
+
         let metadata = fs::metadata(output)?;
-    
+
         Ok(metadata.len())
     }
-       
 }

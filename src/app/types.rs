@@ -1,83 +1,25 @@
-use serde::{Serialize,Deserialize};
+use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize)]
+pub enum State {
+    Created(bool),
+    Deleted(bool),
+    Uploaded(bool),
+    Downloaded(bool),
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct GenerateReportResult {
-    created: bool,
-    output: String,
-    bytes: u64,
-    error: Option<String>
-}
-
-impl GenerateReportResult {
-
-    pub fn new(created: bool, output: String, bytes: u64, error: Option<String>) -> Self {
-        Self {
-            created,
-            output,
-            bytes,
-            error
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct UploadResult {
-    output: String,
-    uploaded: bool,
-    template_id: Option<String>,
-    error: Option<String>
-}
-
-impl UploadResult {
-
-    pub fn new(output: String, uploaded: bool, template_id: Option<String>, error: Option<String>) -> Self {
-        Self {
-            output,
-            uploaded,
-            template_id,
-            error
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct DownloadResult {
-    output: String,
-    downloaded: bool,
-    bytes: u64,
-    error: Option<String>
-}
-
-impl DownloadResult {
-
-    pub fn new(output: String, downloaded: bool, bytes: u64, error: Option<String>) -> Self {
-        Self {
-            output,
-            downloaded,
-            bytes,
-            error
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct DeleteResult {
-    deleted: bool,
-    template_id: Option<String>,
-    error: Option<String>
-}
-
-impl DeleteResult {
-
-    pub fn new(deleted: bool, template_id: Option<String>, error: Option<String>) -> Self {
-        Self {
-            deleted,
-            template_id,
-            error
-        }
-    }
+pub struct JsonResult {
+    pub state: State,
+    #[serde(default)]
+    pub file: Option<String>,
+    #[serde(default)]
+    pub bytes: Option<u64>,
+    #[serde(default)]
+    pub template_id: Option<String>,
+    #[serde(default)]
+    pub error: Option<String>,
 }
