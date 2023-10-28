@@ -5,11 +5,11 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use carbone_sdk_rs::blocking::Carbone;
-use carbone_sdk_rs::config::Config;
-use carbone_sdk_rs::template::*;
-use carbone_sdk_rs::types::Result;
-use carbone_sdk_rs::types::*;
+use carbone_sdk_rust::blocking::Carbone;
+use carbone_sdk_rust::config::Config;
+use carbone_sdk_rust::template::*;
+use carbone_sdk_rust::types::Result;
+use carbone_sdk_rust::types::*;
 
 use crate::app::cli::Cli;
 use crate::app::types::*;

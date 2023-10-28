@@ -1,23 +1,20 @@
 use std::env;
 
-use carbone_sdk_rs::config::Config;
-use carbone_sdk_rs::errors::*;
-use carbone_sdk_rs::types::ApiJsonToken;
+use carbone_sdk_rust::config::Config;
+use carbone_sdk_rust::errors::*;
+use carbone_sdk_rust::types::ApiJsonToken;
 
 mod app;
 
 const ERROR_EXIT_CODE: i32 = 1;
 
 fn main() -> Result<(), CarboneError> {
-
-    let token =  match env::var("CARBONE_TOKEN") {
-        Ok(v) => {
-            match ApiJsonToken::new(v) {
-                Ok(token) => token,
-                Err(e) => {
-                    println!("{}", e);
-                    std::process::exit(ERROR_EXIT_CODE)
-                }
+    let token = match env::var("CARBONE_TOKEN") {
+        Ok(v) => match ApiJsonToken::new(v) {
+            Ok(token) => token,
+            Err(e) => {
+                println!("{}", e);
+                std::process::exit(ERROR_EXIT_CODE)
             }
         },
         Err(_) => {
@@ -29,13 +26,13 @@ fn main() -> Result<(), CarboneError> {
     let cli = app::cli::Cli::new();
 
     let config_file_path = cli.get_path_from_option(&cli.config);
-    let config = match Config::from_file(config_file_path.as_str()) { 
+    let config = match Config::from_file(config_file_path.as_str()) {
         Ok(config) => config,
-        Err(_) => Default::default()
+        Err(_) => Default::default(),
     };
-    
+
     let app = app::carbone::App::new(&config, &token, &cli)?;
     app.run()?;
-    
+
     Ok(())
 }

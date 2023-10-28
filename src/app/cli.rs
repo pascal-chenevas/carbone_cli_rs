@@ -1,4 +1,3 @@
-
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -8,11 +7,11 @@ pub struct Cli {
     /// a configuration file which contains the api url, timeout and api version
     #[arg(short, long, value_name = "FILE")]
     pub config: Option<PathBuf>,
-    
+
     /// json data to be rendered
     #[arg(short, long, value_name = "FILE")]
     pub json: Option<PathBuf>,
-   
+
     /// template file
     #[arg(short, long, value_name = "FILE")]
     pub template: Option<PathBuf>,
@@ -29,11 +28,11 @@ pub struct Cli {
     #[arg(short, long, required = false, value_name = "TEMPLATE_ID | FILE")]
     pub remove_template: Option<String>,
 
-    /// update a template 
+    /// update a template
     #[arg(short, long, required = false)]
     pub update: bool,
 
-    /// download a template 
+    /// download a template
     #[arg(short, long, required = false, value_name = "TEMPLATE_ID")]
     pub download_template: Option<String>,
 }
@@ -44,19 +43,17 @@ impl Cli {
     }
 
     pub fn get_path_from_option(&self, option: &Option<PathBuf>) -> String {
-
         let mut path = "".to_string();
         if let Some(path_from_option) = option.as_deref() {
             path = path_from_option.to_string_lossy().into();
         }
         path
     }
-    
+
     pub fn get_value_from_option(&self, option: &Option<String>) -> String {
-        match  option.as_deref() {
+        match option.as_deref() {
             Some(id) => id.to_string(),
-            None=> "".to_string(),
+            None => "".to_string(),
         }
     }
-
 }

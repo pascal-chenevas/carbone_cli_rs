@@ -4,10 +4,13 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Pascal Chenevas-Paule <pcp.dev@posteo.de>"]
 description = "Simple CLI-App to generate a report and to manage templates using the API of Carbone (http://carbone.io)"
+repository = "https://github.com/pascal-chenevas/carbone_cli_rs"
+readme = "README.md"
+license = "Apache-2.0"
 
 [dependencies]
 clap = { version = "4.2.7", features = ["derive"] }
-carbone_sdk_rs =  { git = "https://github.com/carboneio/carbone-sdk-rust.git", features = ["blocking"] }
+carbone-sdk-rust =  { git = "https://github.com/carboneio/carbone-sdk-rust.git", features = ["blocking"] }
 serde = { version = "1.0.159", features = ["derive"] }
 serde_json = "1.0.95"
 serde_with = "3.1.0"
